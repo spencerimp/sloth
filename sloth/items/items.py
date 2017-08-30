@@ -1,3 +1,4 @@
+import math
 import logging
 from PyQt4.Qt import *
 
@@ -830,3 +831,41 @@ class PolygonItem(BaseItem):
     def dataChange(self):
         polygon = self._dataToPolygon(self._model_item)
         self._updatePolygon(polygon)
+
+
+class EditablePolygonItem(sloth.items.PolygonItem):
+    def __init__(self, *args, **kwargs):
+        sloth.items.PolygonItem.__init__(self, *args, **kwargs)
+
+        self.point_in_motion = None
+
+    def mousePressEvent(self, event):
+        dists = [math.sqrt((event.pos().x() - pt.x()) ** 2 + (event.pos().y() - pt.y()) ** 2) for pt in self._polygon]
+        min_dist, min_ind = min((val, idx) for (idx, val) in enumerate(dists))
+        if min_dist < 10.0:
+            self.point_in_motion = min_ind
+
+    def mouseMoveEvent(self, event):
+        if self.point_in_motion is not None:
+            self.prepareGeometryChange()
+            poly = self._polygon
+            poly[self.point_in_motion] = event.pos()
+
+    def mouseReleaseEvent(self, event):
+        if self.point_in_motion is not None:
+            self.point_in_motion = None
+
+    def mouseReleaseEvent(self, event):
+        if self.point_in_motion is not None:
+            self.point_in_motion = None
+        self.updateModel()
+
+    def updateModel(self):
+        xns = [str(pt.x()) for pt in self._polygon]
+        yns = [str(pt.y()) for pt in self._polygon]
+        xn_string = ";".join(xns)
+        yn_string = ";".join(yns)
+        self._model_item.update({
+            self.prefix() + 'xn': xn_string,
+            self.prefix() + 'yn': yn_string,
+        })
