@@ -833,9 +833,9 @@ class PolygonItem(BaseItem):
         self._updatePolygon(polygon)
 
 
-class EditablePolygonItem(sloth.items.PolygonItem):
+class EditablePolygonItem(PolygonItem):
     def __init__(self, *args, **kwargs):
-        sloth.items.PolygonItem.__init__(self, *args, **kwargs)
+        PolygonItem.__init__(self, *args, **kwargs)
 
         self.point_in_motion = None
 
